@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
-"""月度趋势（表6）：版本 × 分类的问题密度，用来发现版本引入的回归。
-用密度(‰)而非绝对数，否则装机量大的版本永远看起来问题最多。
+"""月度趋势（表6）：按月 × 分类统计问题密度，看整体趋势是否在恶化。
+同一个月同一分类下可能横跨多个版本，评论数直接加总；「应用版本」列只列出该月出现过哪些版本，仅供追溯，不参与分组/环比计算。
+用密度(‰)而非绝对数，否则评论总量大的月份永远看起来问题最多。
+版本粒度的回归定位（哪个版本引入的）看下面的控制台打印（按版本汇总，不分月）。
 """
 import json, collections, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -12,26 +14,32 @@ def cats_of(r):
 
 def main():
     rows = json.load(open(K.data_path('classified.json'), encoding='utf-8'))
-    base, cells = collections.Counter(), collections.Counter()
+    base, cells, vers = collections.Counter(), collections.Counter(), collections.defaultdict(set)
     for r in rows:
         m, v = r['update'][:7], r['ver']
         if not v: continue
-        base[(m, v)] += 1
-        for c in cats_of(r): cells[(m, v, c)] += 1
+        base[m] += 1
+        for c in cats_of(r):
+            cells[(m, c)] += 1
+            vers[(m, c)].add(v)
 
-    HEAD = ['月份','应用版本','一级分类','问题评论数','该版本当月总评论数','密度(‰)','环比变化','备注']
+    MIN_COUNT_RISE = 3  # 密度差再大，问题评论数绝对增量不到这个数就不算"明显上升"——避免小样本(1→2条)被误判
+
+    HEAD = ['月份','出现的应用版本','一级分类','问题评论数','该月总评论数','密度(‰)','环比变化','备注']
     out, prev = [HEAD], {}
-    for (m, v, c), n in sorted(cells.items()):
-        b = base[(m, v)]
+    for (m, c), n in sorted(cells.items()):
+        b = base[m]
         if b < MIN_BASE: continue
         d = n / b * 1000
-        k, delta, note = (v, c), '', ''
-        if k in prev:
-            diff = d - prev[k]
+        vlist = ','.join(sorted(vers[(m, c)]))
+        delta, note = '', ''
+        if c in prev:
+            prev_d, prev_n = prev[c]
+            diff = d - prev_d
             delta = f"{diff:+.1f}‰"
-            if diff >= 10: note = '⚠ 该版本内环比明显上升'
-        prev[k] = d
-        out.append([m, v, c, n, b, round(d, 1), delta, note])
+            if diff >= 10 and (n - prev_n) >= MIN_COUNT_RISE: note = '⚠ 该分类环比明显上升'
+        prev[c] = (d, n)
+        out.append([m, vlist, c, n, b, round(d, 1), delta, note])
     json.dump(out, open(K.data_path('sheet6_trends.json'), 'w'), ensure_ascii=False)
     print(f"月度趋势 {len(out)-1} 行")
 
