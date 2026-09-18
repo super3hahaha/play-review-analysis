@@ -402,6 +402,4 @@ ID 若按证据强度排序生成，数据一变就漂（实测同一个 ISS-001
   列号转字母、公式必须 USER_ENTERED 等，全是实际踩出来的
 - `references/taxonomy-guide.md` — 怎么为新 app 建分类体系；没有现成体系时如何从数据归纳
 - `references/sheet-schema.md` — 6 张表的完整列定义与状态机
-- `references/confidence-scoring.md` — 评分全链路：密度分→置信度→证据强度→状态，
-  每一步公式和判定阈值，以及为什么证据强度只认置信度字母不重看密度分数字
 - `assets/taxonomy_template.py` — 词表模板，**通用 7 类已内置**，只需补业务域

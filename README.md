@@ -67,8 +67,7 @@ scripts/                  流水线脚本（classify → build_issues → export
 references/
   ├─ gotchas.md              改词表前必读：正则陷阱、Sheets API 坑、子串误伤案例
   ├─ taxonomy-guide.md       怎么给新 app 建分类体系
-  ├─ sheet-schema.md         6 张表的完整列定义与状态机
-  └─ confidence-scoring.md   评分全链路：密度分→置信度→证据强度→状态，每步公式和阈值
+  └─ sheet-schema.md         6 张表的完整列定义与状态机
 assets/
   └─ taxonomy_template.py    分类词表模板，通用 7 类已内置
 ```
@@ -219,8 +218,6 @@ upload 时会保留。
 
 一条评论的信息密度，最终只会以"是A还是B还是C"这一个比特位的精度，影响到它所在问题的状态——
 中间的密度分数字、命中了哪几个线索标签，都只是这个判断过程留下的"可解释性"痕迹。
-
-（这部分内容和 `references/confidence-scoring.md` 同步维护，改一处记得改另一处）
 
 ## 使用场景 / 边界
 
